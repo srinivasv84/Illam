@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Illam · இல்லம்</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500&family=DM+Serif+Display&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg: #f7f5f0;
+      --card: #fff;
+      --sidebar: #1a1a2e;
+      --text: #1a1a2e;
+      --text-light: #6b6880;
+      --accent: #e8775a;
+      --border: #e8e4dc;
+      --radius: 12px;
+    }
+    body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--text); line-height: 1.5; }
+    .app { display: flex; height: 100vh; }
+    .sidebar { width: 220px; background: var(--sidebar); color: #fff; padding: 20px; overflow-y: auto; }
+    .brand { font-family: 'DM Serif Display', serif; font-size: 24px; margin-bottom: 30px; }
+    .brand-sub { font-size: 10px; color: rgba(255,255,255,0.4); margin-top: 4px; }
+    .nav { display: flex; flex-direction: column; gap: 6px; }
+    .nav-item { padding: 10px 14px; cursor: pointer; border-radius: 6px; transition: 0.2s; color: rgba(255,255,255,0.7); display: flex; gap: 8px; align-items: center; }
+    .nav-item:hover, .nav-item.active { background: rgba(255,255,255,0.1); color: #fff; }
+    .main { flex: 1; overflow-y: auto; padding: 24px; }
+    .header { margin-bottom: 24px; }
+    .title { font-family: 'DM Serif Display', serif; font-size: 28px; margin-bottom: 8px; }
+    .subtitle { font-size: 13px; color: var(--text-light); }
+    .card { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 18px; margin-bottom: 16px; }
+    .card-title { font-size: 13px; font-weight: 500; margin-bottom: 14px; display: flex; gap: 6px; align-items: center; }
+    .card-title i { color: var(--accent); }
+    .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; margin-bottom: 12px; }
+    input, select, textarea { width: 100%; padding: 9px 11px; font-size: 13px; border: 1px solid var(--border); border-radius: 6px; background: var(--bg); color: var(--text); font-family: inherit; }
+    input:focus, select:focus, textarea:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px rgba(232,119,90,0.1); }
+    .btn { padding: 8px 16px; background: var(--accent); color: #fff; border: none; border-radius: 6px; cursor: pointer; font-size: 13px; font-weight: 500; display: inline-flex; align-items: center; gap: 6px; transition: 0.2s; }
+    .btn:hover { opacity: 0.9; }
+    .btn-sm { padding: 5px 11px; font-size: 12px; }
+    .list { display: flex; flex-direction: column; gap: 8px; }
+    .list-item { display: flex; align-items: center; gap: 10px; padding: 10px 0; border-bottom: 1px solid var(--border); }
+    .list-item:last-child { border-bottom: none; }
+    .list-item-body { flex: 1; }
+    .list-item-title { font-size: 13px; font-weight: 500; }
+    .list-item-sub { font-size: 11px; color: var(--text-light); margin-top: 3px; }
+    .stat-card { background: var(--card); border: 1px solid var(--border); padding: 14px; border-radius: var(--radius); text-align: center; }
+    .stat-num { font-family: 'DM Serif Display', serif; font-size: 28px; line-height: 1; }
+    .stat-label { font-size: 11px; color: var(--text-light); margin-top: 4px; }
+    .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(100px, 1fr)); gap: 12px; margin-bottom: 16px; }
+    .badge { display: inline-block; background: #edf4f9; color: #185fa5; padding: 3px 8px; border-radius: 12px; font-size: 10px; font-weight: 500; }
+    .checkbox { margin-right: 8px; }
+    .toast { position: fixed; top: 20px; right: 20px; background: var(--sidebar); color: #fff; padding: 12px 16px; border-radius: var(--radius); animation: slideIn 0.3s ease; z-index: 1000; }
+    @keyframes slideIn { from { transform: translateX(400px); opacity: 0; } to { transform: none; opacity: 1; } }
+    .hidden { display: none; }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <div class="sidebar">
+      <div class="brand">🏠 Illam<div class="brand-sub">இல்லம் · home</div></div>
+      <div class="nav">
+        <div class="nav-item active" onclick="showPage('dashboard')"><i class="ti ti-layout-dashboard"></i> Dashboard</div>
+        <div class="nav-item" onclick="showPage('tasks')"><i class="ti ti-checkbox"></i> Tasks</div>
+        <div class="nav-item" onclick="showPage('meals')"><i class="ti ti-salad"></i> Meals</div>
+        <div class="nav-item" onclick="showPage('occasions')"><i class="ti ti-gift"></i> Occasions</div>
+        <div class="nav-item" onclick="showPage('grocery')"><i class="ti ti-shopping-cart"></i> Grocery</div>
+        <div class="nav-item" onclick="showPage('chat')"><i class="ti ti-messages"></i> Chat</div>
+      </div>
+    </div>
+
+    <div class="main">
+      <!-- Dashboard -->
+      <div id="dashboard" class="page">
+        <div class="header">
+          <div class="title">Welcome, Sri 👋</div>
+          <div class="subtitle">Sunday, May 25, 2026</div>
+        </div>
+        <div class="stats">
+          <div class="stat-card"><div class="stat-num" id="stat-tasks">0</div><div class="stat-label">Tasks pending</div></div>
+          <div class="stat-card"><div class="stat-num" id="stat-occasions">0</div><div class="stat-label">Occasions</div></div>
+          <div class="stat-card"><div class="stat-num" id="stat-grocery">0</div><div class="stat-label">Grocery items</div></div>
+        </div>
+        <div class="card">
+          <div class="card-title"><i class="ti ti-checkbox"></i> Recent tasks</div>
+          <div class="list" id="dashboard-tasks"></div>
+        </div>
+      </div>
+
+      <!-- Tasks -->
+      <div id="tasks" class="page hidden">
+        <div class="header">
+          <div class="title">To-do & tasks</div>
+        </div>
+        <div class="card">
+          <div class="card-title"><i class="ti ti-plus"></i> Add a task</div>
+          <div class="form-grid">
+            <input type="text" id="taskInput" placeholder="What needs doing?">
+            <select id="taskAssignee"><option value="sri">Sri</option><option value="bhu">Bhuvana</option><option value="adv">Advay</option><option value="saa">Saaral</option></select>
+          </div>
+          <button class="btn" onclick="addTask()"><i class="ti ti-plus"></i> Add task</button>
+        </div>
+        <div class="card">
+          <div class="card-title"><i class="ti ti-list"></i> Your tasks</div>
+          <div class="list" id="tasks-list"></div>
+        </div>
+      </div>
+
+      <!-- Meals -->
+      <div id="meals" class="page hidden">
+        <div class="header">
+          <div class="title">Weekly meal planner</div>
+        </div>
+        <div class="card">
+          <div class="card-title"><i class="ti ti-calendar"></i> This week</div>
+          <div class="list" id="meals-list"></div>
+          <input type="text" id="mealInput" placeholder="Add meal plan..." style="margin-top: 12px;">
+          <button class="btn" onclick="addMeal()" style="margin-top: 8px;"><i class="ti ti-plus"></i> Add meal</button>
+        </div>
+      </div>
+
+      <!-- Occasions -->
+      <div id="occasions" class="page hidden">
+        <div class="header">
+          <div class="title">Occasions</div>
+        </div>
+        <div class="card">
+          <div class="card-title"><i class="ti ti-plus"></i> Add occasion</div>
+          <div class="form-grid">
+            <input type="text" id="occName" placeholder="Name">
+            <input type="date" id="occDate">
+            <select id="occType"><option>Birthday</option><option>Anniversary</option><option>Other</option></select>
+          </div>
+          <button class="btn" onclick="addOccasion()"><i class="ti ti-plus"></i> Add</button>
+        </div>
+        <div class="card">
+          <div class="card-title"><i class="ti ti-gift"></i> Coming up</div>
+          <div class="list" id="occasions-list"></div>
+        </div>
+      </div>
+
+      <!-- Grocery -->
+      <div id="grocery" class="page hidden">
+        <div class="header">
+          <div class="title">Grocery list</div>
+        </div>
+        <div class="card">
+          <div class="card-title"><i class="ti ti-plus"></i> Add item</div>
+          <div class="form-grid">
+            <input type="text" id="groceryInput" placeholder="Item name">
+            <input type="text" id="groceryQty" placeholder="Quantity">
+          </div>
+          <button class="btn" onclick="addGrocery()"><i class="ti ti-plus"></i> Add item</button>
+        </div>
+        <div class="card">
+          <div class="card-title"><i class="ti ti-shopping-cart"></i> Shopping list</div>
+          <div class="list" id="grocery-list"></div>
+        </div>
+      </div>
+
+      <!-- Chat -->
+      <div id="chat" class="page hidden">
+        <div class="header">
+          <div class="title">Family chat</div>
+        </div>
+        <div class="card">
+          <div style="display: flex; gap: 8px; margin-bottom: 12px; flex-wrap: wrap;">
+            <button class="btn btn-sm" onclick="setChatAs('sri')" id="chat-sri">Sri</button>
+            <button class="btn btn-sm" onclick="setChatAs('bhu')" id="chat-bhu">Bhuvana</button>
+            <button class="btn btn-sm" onclick="setChatAs('adv')" id="chat-adv">Advay</button>
+          </div>
+          <div id="chat-messages" style="height: 300px; overflow-y: auto; border: 1px solid var(--border); border-radius: 6px; padding: 12px; margin-bottom: 12px; background: var(--bg);"></div>
+          <div style="display: flex; gap: 8px;">
+            <input type="text" id="chatInput" placeholder="Type a message...">
+            <button class="btn" onclick="sendChat()"><i class="ti ti-send"></i></button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Local storage
+    const store = {
+      tasks: JSON.parse(localStorage.getItem('tasks')) || [],
+      occasions: JSON.parse(localStorage.getItem('occasions')) || [],
+      meals: JSON.parse(localStorage.getItem('meals')) || [],
+      grocery: JSON.parse(localStorage.getItem('grocery')) || [],
+      chat: JSON.parse(localStorage.getItem('chat')) || [],
+      chatAs: 'sri'
+    }
+
+    function save() {
+      localStorage.setItem('tasks', JSON.stringify(store.tasks))
+      localStorage.setItem('occasions', JSON.stringify(store.occasions))
+      localStorage.setItem('meals', JSON.stringify(store.meals))
+      localStorage.setItem('grocery', JSON.stringify(store.grocery))
+      localStorage.setItem('chat', JSON.stringify(store.chat))
+      render()
+    }
+
+    function showPage(page) {
+      document.querySelectorAll('.page').forEach(p => p.classList.add('hidden'))
+      document.getElementById(page).classList.remove('hidden')
+      document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'))
+      event.target.closest('.nav-item').classList.add('active')
+    }
+
+    function toast(msg) {
+      const t = document.createElement('div')
+      t.className = 'toast'
+      t.textContent = msg
+      document.body.appendChild(t)
+      setTimeout(() => t.remove(), 2800)
+    }
+
+    function addTask() {
+      const text = document.getElementById('taskInput').value
+      const assignee = document.getElementById('taskAssignee').value
+      if (!text.trim()) return
+      store.tasks.push({ id: Date.now(), text, assignee, done: false })
+      document.getElementById('taskInput').value = ''
+      save()
+      toast('Task added!')
+    }
+
+    function toggleTask(id) {
+      const t = store.tasks.find(x => x.id === id)
+      if (t) { t.done = !t.done; save(); }
+    }
+
+    function deleteTask(id) {
+      store.tasks = store.tasks.filter(x => x.id !== id)
+      save()
+    }
+
+    function addMeal() {
+      const meal = document.getElementById('mealInput').value
+      if (!meal.trim()) return
+      store.meals.push({ id: Date.now(), text: meal })
+      document.getElementById('mealInput').value = ''
+      save()
+      toast('Meal added!')
+    }
+
+    function addOccasion() {
+      const name = document.getElementById('occName').value
+      const date = document.getElementById('occDate').value
+      const type = document.getElementById('occType').value
+      if (!name.trim()) return
+      store.occasions.push({ id: Date.now(), name, date, type })
+      document.getElementById('occName').value = ''
+      document.getElementById('occDate').value = ''
+      save()
+      toast('Occasion added!')
+    }
+
+    function addGrocery() {
+      const item = document.getElementById('groceryInput').value
+      const qty = document.getElementById('groceryQty').value
+      if (!item.trim()) return
+      store.grocery.push({ id: Date.now(), item, qty, bought: false })
+      document.getElementById('groceryInput').value = ''
+      document.getElementById('groceryQty').value = ''
+      save()
+      toast('Item added!')
+    }
+
+    function toggleGrocery(id) {
+      const g = store.grocery.find(x => x.id === id)
+      if (g) { g.bought = !g.bought; save(); }
+    }
+
+    function deleteGrocery(id) {
+      store.grocery = store.grocery.filter(x => x.id !== id)
+      save()
+    }
+
+    function setChatAs(person) {
+      store.chatAs = person
+      document.querySelectorAll('#chat-sri, #chat-bhu, #chat-adv').forEach(b => b.style.opacity = '0.5')
+      document.getElementById('chat-' + person).style.opacity = '1'
+      render()
+    }
+
+    function sendChat() {
+      const text = document.getElementById('chatInput').value
+      if (!text.trim()) return
+      store.chat.push({ id: Date.now(), sender: store.chatAs, text, time: new Date().toLocaleTimeString() })
+      document.getElementById('chatInput').value = ''
+      save()
+    }
+
+    function render() {
+      // Dashboard
+      document.getElementById('stat-tasks').textContent = store.tasks.filter(t => !t.done).length
+      document.getElementById('stat-occasions').textContent = store.occasions.length
+      document.getElementById('stat-grocery').textContent = store.grocery.filter(g => !g.bought).length
+
+      document.getElementById('dashboard-tasks').innerHTML = store.tasks.slice(0, 5).map(t =>
+        `<div class="list-item"><input type="checkbox" class="checkbox" ${t.done ? 'checked' : ''} onchange="toggleTask(${t.id})"><div class="list-item-body"><div class="list-item-title" style="text-decoration: ${t.done ? 'line-through' : 'none'}">${t.text}</div><div class="list-item-sub"><span class="badge">${t.assignee}</span></div></div></div>`
+      ).join('')
+
+      // Tasks page
+      document.getElementById('tasks-list').innerHTML = store.tasks.map(t =>
+        `<div class="list-item"><input type="checkbox" class="checkbox" ${t.done ? 'checked' : ''} onchange="toggleTask(${t.id})"><div class="list-item-body"><div class="list-item-title" style="text-decoration: ${t.done ? 'line-through' : 'none'}">${t.text}</div><div class="list-item-sub"><span class="badge">${t.assignee}</span></div></div><button class="btn btn-sm" onclick="deleteTask(${t.id})">×</button></div>`
+      ).join('')
+
+      // Meals
+      document.getElementById('meals-list').innerHTML = store.meals.map(m =>
+        `<div class="list-item"><div class="list-item-body"><div class="list-item-title">${m.text}</div></div><button class="btn btn-sm" onclick="store.meals = store.meals.filter(x => x.id !== ${m.id}); save()">×</button></div>`
+      ).join('')
+
+      // Occasions
+      document.getElementById('occasions-list').innerHTML = store.occasions.map(o =>
+        `<div class="list-item"><div class="list-item-body"><div class="list-item-title">${o.name}</div><div class="list-item-sub">${o.type} · ${o.date}</div></div><button class="btn btn-sm" onclick="store.occasions = store.occasions.filter(x => x.id !== ${o.id}); save()">×</button></div>`
+      ).join('')
+
+      // Grocery
+      document.getElementById('grocery-list').innerHTML = store.grocery.map(g =>
+        `<div class="list-item"><input type="checkbox" class="checkbox" ${g.bought ? 'checked' : ''} onchange="toggleGrocery(${g.id})"><div class="list-item-body"><div class="list-item-title" style="text-decoration: ${g.bought ? 'line-through' : 'none'}">${g.item}</div><div class="list-item-sub">${g.qty}</div></div><button class="btn btn-sm" onclick="deleteGrocery(${g.id})">×</button></div>`
+      ).join('')
+
+      // Chat
+      document.getElementById('chat-messages').innerHTML = store.chat.map(m =>
+        `<div style="margin-bottom: 8px; padding: 8px; background: ${m.sender === store.chatAs ? '#e8775a' : '#f0f0f0'}; color: ${m.sender === store.chatAs ? '#fff' : '#000'}; border-radius: 8px; text-align: ${m.sender === store.chatAs ? 'right' : 'left'}"><strong>${m.sender}</strong><br><small>${m.text}</small></div>`
+      ).join('')
+      document.getElementById('chat-messages').scrollTop = document.getElementById('chat-messages').scrollHeight
+    }
+
+    render()
+  </script>
+</body>
+</html>
