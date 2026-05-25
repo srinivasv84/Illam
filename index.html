@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Illam · Family Hub</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f5f5f5; color: #333; }
+    .app { display: flex; height: 100vh; }
+    .sidebar { width: 250px; background: #1a1a2e; color: white; padding: 20px; overflow-y: auto; position: fixed; height: 100vh; left: 0; }
+    .logo { font-size: 24px; font-weight: bold; margin-bottom: 30px; }
+    .nav-btn { display: block; width: 100%; padding: 12px 14px; margin: 6px 0; background: none; border: none; color: rgba(255,255,255,0.7); text-align: left; cursor: pointer; border-radius: 6px; transition: 0.2s; font-size: 14px; }
+    .nav-btn:hover { background: rgba(255,255,255,0.1); color: white; }
+    .nav-btn.active { background: #e8775a; color: white; }
+    .main { margin-left: 250px; flex: 1; overflow-y: auto; padding: 30px; }
+    .page { display: none; }
+    .page.active { display: block; }
+    .title { font-size: 32px; margin-bottom: 25px; font-weight: 600; }
+    .subtitle { font-size: 13px; color: #999; margin-top: 5px; }
+    .card { background: white; padding: 20px; border-radius: 8px; margin-bottom: 20px; border: 1px solid #f0f0f0; }
+    .form-group { margin-bottom: 12px; }
+    input, select, textarea { padding: 10px 12px; width: 100%; border: 1px solid #e0e0e0; border-radius: 6px; font-size: 13px; margin: 5px 0; font-family: inherit; }
+    input:focus, select:focus, textarea:focus { outline: none; border-color: #e8775a; box-shadow: 0 0 0 3px rgba(232,119,90,0.1); }
+    button { padding: 10px 20px; background: #e8775a; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 13px; font-weight: 500; margin: 10px 0; transition: 0.2s; }
+    button:hover { opacity: 0.9; }
+    button.secondary { background: #f0f0f0; color: #333; }
+    .list { display: flex; flex-direction: column; gap: 10px; }
+    .list-item { padding: 12px; background: #f9f9f9; border-radius: 6px; border-left: 3px solid #e8775a; }
+    .list-item-title { font-weight: 500; margin-bottom: 3px; }
+    .list-item-sub { font-size: 12px; color: #999; }
+    .badge { display: inline-block; background: #f0f0f0; color: #666; padding: 4px 10px; border-radius: 12px; font-size: 11px; margin-right: 8px; }
+    .hamburger { display: none; position: fixed; top: 15px; left: 15px; background: #1a1a2e; color: white; border: none; font-size: 24px; cursor: pointer; z-index: 1000; padding: 10px; border-radius: 4px; }
+    .overlay { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 500; }
+    
+    @media (max-width: 768px) {
+      .hamburger { display: block; }
+      .sidebar { left: -250px; z-index: 999; transition: left 0.3s; }
+      .sidebar.open { left: 0; }
+      .overlay.open { display: block; }
+      .main { margin-left: 0; padding: 15px; padding-top: 60px; }
+      .title { font-size: 22px; }
+    }
+    
+    .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 15px; margin-bottom: 25px; }
+    .stat-box { background: white; padding: 20px; border-radius: 8px; text-align: center; border: 1px solid #f0f0f0; }
+    .stat-num { font-size: 32px; font-weight: bold; color: #e8775a; }
+    .stat-label { font-size: 12px; color: #999; margin-top: 5px; }
+    .chat-box { height: 300px; border: 1px solid #e0e0e0; border-radius: 6px; padding: 15px; overflow-y: auto; margin-bottom: 15px; background: #fafafa; }
+    .chat-msg { padding: 8px 12px; margin: 8px 0; border-radius: 6px; font-size: 13px; }
+    .chat-msg.sent { background: #e8775a; color: white; margin-left: 20px; }
+    .chat-msg.received { background: white; border: 1px solid #e0e0e0; margin-right: 20px; }
+  </style>
+</head>
+<body>
+  <button class="hamburger" onclick="toggleMenu()">☰</button>
+  <div class="overlay" id="overlay" onclick="toggleMenu()"></div>
+  
+  <div class="app">
+    <div class="sidebar" id="sidebar">
+      <div class="logo">🏠 Illam</div>
+      <nav>
+        <button class="nav-btn active" onclick="goTo('dashboard')">📊 Dashboard</button>
+        <button class="nav-btn" onclick="goTo('tasks')">✓ Tasks</button>
+        <button class="nav-btn" onclick="goTo('grocery')">🛒 Grocery</button>
+        <button class="nav-btn" onclick="goTo('occasions')">🎉 Occasions</button>
+        <button class="nav-btn" onclick="goTo('chat')">💬 Chat</button>
+      </nav>
+    </div>
+
+    <div class="main">
+      <!-- Dashboard -->
+      <div id="dashboard" class="page active">
+        <div class="title">Dashboard</div>
+        <div class="stats">
+          <div class="stat-box">
+            <div class="stat-num" id="taskCount">0</div>
+            <div class="stat-label">Tasks Pending</div>
+          </div>
+          <div class="stat-box">
+            <div class="stat-num" id="groceryCount">0</div>
+            <div class="stat-label">Grocery Items</div>
+          </div>
+          <div class="stat-box">
+            <div class="stat-num" id="occCount">0</div>
+            <div class="stat-label">Occasions</div>
+          </div>
+        </div>
+        <div class="card">
+          <h3>Recent Tasks</h3>
+          <div class="list" id="recentTasks"></div>
+        </div>
+      </div>
+
+      <!-- Tasks -->
+      <div id="tasks" class="page hidden">
+        <div class="title">Tasks & To-Do</div>
+        <div class="card">
+          <div class="form-group">
+            <input type="text" id="taskText" placeholder="Task description...">
+          </div>
+          <div class="form-group">
+            <select id="taskAssignee">
+              <option value="sri">Sri</option>
+              <option value="bhu">Bhuvana</option>
+              <option value="adv">Advay</option>
+              <option value="saa">Saaral</option>
+              <option value="lak">Lakshmi</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <input type="date" id="taskDate">
+          </div>
+          <button onclick="addTask()">Add Task</button>
+        </div>
+        <div class="card">
+          <h3>All Tasks</h3>
+          <div class="list" id="tasksList"></div>
+        </div>
+      </div>
+
+      <!-- Grocery -->
+      <div id="grocery" class="page hidden">
+        <div class="title">Grocery List</div>
+        <div class="card">
+          <div class="form-group">
+            <input type="text" id="groceryText" placeholder="Item name...">
+          </div>
+          <div class="form-group">
+            <input type="text" id="groceryQty" placeholder="Quantity...">
+          </div>
+          <div class="form-group">
+            <select id="groceryCat">
+              <option>Vegetables</option>
+              <option>Fruits</option>
+              <option>Dairy</option>
+              <option>Grains</option>
+              <option>Spices</option>
+              <option>Other</option>
+            </select>
+          </div>
+          <button onclick="addGrocery()">Add Item</button>
+        </div>
+        <div class="card">
+          <h3>Shopping List</h3>
+          <div class="list" id="groceryList"></div>
+        </div>
+      </div>
+
+      <!-- Occasions -->
+      <div id="occasions" class="page hidden">
+        <div class="title">Occasions & Celebrations</div>
+        <div class="card">
+          <div class="form-group">
+            <input type="text" id="occName" placeholder="Name (Birthday, Anniversary, etc)...">
+          </div>
+          <div class="form-group">
+            <input type="date" id="occDate">
+          </div>
+          <div class="form-group">
+            <select id="occType">
+              <option>Birthday</option>
+              <option>Anniversary</option>
+              <option>Memorial</option>
+              <option>Other</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <input type="text" id="occRel" placeholder="Person (optional)...">
+          </div>
+          <button onclick="addOccasion()">Add Occasion</button>
+        </div>
+        <div class="card">
+          <h3>Upcoming (60 days)</h3>
+          <div class="list" id="occasionsList"></div>
+        </div>
+      </div>
+
+      <!-- Chat -->
+      <div id="chat" class="page hidden">
+        <div class="title">Family Chat</div>
+        <div class="card">
+          <div style="margin-bottom: 15px;">
+            <button onclick="setChatAs('sri')" class="secondary" style="width: auto; margin-right: 5px;">Sri</button>
+            <button onclick="setChatAs('bhu')" class="secondary" style="width: auto; margin-right: 5px;">Bhuvana</button>
+            <button onclick="setChatAs('adv')" class="secondary" style="width: auto; margin-right: 5px;">Advay</button>
+            <button onclick="setChatAs('saa')" class="secondary" style="width: auto; margin-right: 5px;">Saaral</button>
+            <button onclick="setChatAs('lak')" class="secondary" style="width: auto;">Lakshmi</button>
+          </div>
+          <div class="chat-box" id="chatMessages"></div>
+          <div style="display: flex; gap: 10px;">
+            <input type="text" id="chatText" placeholder="Type a message..." style="margin: 0;">
+            <button onclick="sendChat()" style="margin: 0; width: 80px;">Send</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Supabase config
+    const SUPABASE_URL = 'https://nwohlaqjpahmseuizmwz.supabase.co'
+    const SUPABASE_KEY = 'sb_publishable_VNiPCeXR3vfQULQkKVDDlA_PdKZvxGW'
+    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY)
+
+    let chatAs = 'sri'
+
+    function toggleMenu() {
+      document.getElementById('sidebar').classList.toggle('open')
+      document.getElementById('overlay').classList.toggle('open')
+    }
+
+    function goTo(page) {
+      document.querySelectorAll('.page').forEach(p => p.classList.remove('active'))
+      document.getElementById(page).classList.add('active')
+      document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'))
+      event.target.classList.add('active')
+      toggleMenu()
+    }
+
+    function setChatAs(person) {
+      chatAs = person
+      console.log('Chat as:', person)
+    }
+
+    async function addTask() {
+      const text = document.getElementById('taskText').value.trim()
+      const assignee = document.getElementById('taskAssignee').value
+      const date = document.getElementById('taskDate').value
+      if (!text) return alert('Enter a task')
+      
+      const { error } = await supabase.from('tasks').insert([{ text, assignee, date, done: false }])
+      if (error) { console.error(error); alert('Error: ' + error.message); return }
+      
+      document.getElementById('taskText').value = ''
+      document.getElementById('taskDate').value = ''
+      await loadData()
+    }
+
+    async function deleteTask(id) {
+      await supabase.from('tasks').delete().eq('id', id)
+      await loadData()
+    }
+
+    async function toggleTask(id) {
+      const task = data.tasks.find(t => t.id === id)
+      if (task) {
+        await supabase.from('tasks').update({ done: !task.done }).eq('id', id)
+        await loadData()
+      }
+    }
+
+    async function addGrocery() {
+      const item = document.getElementById('groceryText').value.trim()
+      const qty = document.getElementById('groceryQty').value.trim()
+      const cat = document.getElementById('groceryCat').value
+      if (!item) return alert('Enter item name')
+      
+      const { error } = await supabase.from('grocery').insert([{ item, qty, cat, bought: false }])
+      if (error) { console.error(error); alert('Error: ' + error.message); return }
+      
+      document.getElementById('groceryText').value = ''
+      document.getElementById('groceryQty').value = ''
+      await loadData()
+    }
+
+    async function deleteGrocery(id) {
+      await supabase.from('grocery').delete().eq('id', id)
+      await loadData()
+    }
+
+    async function addOccasion() {
+      const name = document.getElementById('occName').value.trim()
+      const date = document.getElementById('occDate').value
+      const type = document.getElementById('occType').value
+      const rel = document.getElementById('occRel').value
+      if (!name || !date) return alert('Enter name and date')
+      
+      const { error } = await supabase.from('occasions').insert([{ name, date, type, rel, notes: '' }])
+      if (error) { console.error(error); alert('Error: ' + error.message); return }
+      
+      document.getElementById('occName').value = ''
+      document.getElementById('occDate').value = ''
+      await loadData()
+    }
+
+    async function deleteOccasion(id) {
+      await supabase.from('occasions').delete().eq('id', id)
+      await loadData()
+    }
+
+    async function sendChat() {
+      const text = document.getElementById('chatText').value.trim()
+      if (!text) return
+      
+      const { error } = await supabase.from('chat').insert([{ sender: chatAs, text }])
+      if (error) { console.error(error); alert('Error: ' + error.message); return }
+      
+      document.getElementById('chatText').value = ''
+      await loadData()
+    }
+
+    let data = { tasks: [], grocery: [], occasions: [], chat: [] }
+
+    async function loadData() {
+      try {
+        const [tasks, grocery, occasions, chat] = await Promise.all([
+          supabase.from('tasks').select(),
+          supabase.from('grocery').select(),
+          supabase.from('occasions').select(),
+          supabase.from('chat').select().order('id', { ascending: true })
+        ])
+
+        data = {
+          tasks: tasks.data || [],
+          grocery: grocery.data || [],
+          occasions: occasions.data || [],
+          chat: chat.data || []
+        }
+
+        // Dashboard stats
+        document.getElementById('taskCount').textContent = data.tasks.filter(t => !t.done).length
+        document.getElementById('groceryCount').textContent = data.grocery.filter(g => !g.bought).length
+        document.getElementById('occCount').textContent = data.occasions.length
+
+        // Recent tasks
+        document.getElementById('recentTasks').innerHTML = data.tasks.slice(0, 5).map(t =>
+          `<div class="list-item">
+            <div class="list-item-title">${t.text}</div>
+            <div class="list-item-sub"><span class="badge">${t.assignee}</span> ${t.date || 'No date'}</div>
+          </div>`
+        ).join('') || '<p style="color: #999;">No tasks</p>'
+
+        // Tasks list
+        document.getElementById('tasksList').innerHTML = data.tasks.map(t =>
+          `<div class="list-item">
+            <div style="flex: 1;">
+              <div class="list-item-title">${t.text}</div>
+              <div class="list-item-sub"><span class="badge">${t.assignee}</span> ${t.date || 'No date'}</div>
+            </div>
+            <button onclick="deleteTask(${t.id})" class="secondary" style="width: 60px; padding: 6px; margin: 0;">Delete</button>
+          </div>`
+        ).join('') || '<p style="color: #999;">No tasks</p>'
+
+        // Grocery list
+        document.getElementById('groceryList').innerHTML = data.grocery.map(g =>
+          `<div class="list-item">
+            <div style="flex: 1;">
+              <div class="list-item-title">${g.item}</div>
+              <div class="list-item-sub"><span class="badge">${g.cat}</span> ${g.qty || ''}</div>
+            </div>
+            <button onclick="deleteGrocery(${g.id})" class="secondary" style="width: 60px; padding: 6px; margin: 0;">Delete</button>
+          </div>`
+        ).join('') || '<p style="color: #999;">No items</p>'
+
+        // Occasions list
+        document.getElementById('occasionsList').innerHTML = data.occasions.map(o =>
+          `<div class="list-item">
+            <div style="flex: 1;">
+              <div class="list-item-title">${o.name} ${o.rel ? '(' + o.rel + ')' : ''}</div>
+              <div class="list-item-sub"><span class="badge">${o.type}</span> ${o.date}</div>
+            </div>
+            <button onclick="deleteOccasion(${o.id})" class="secondary" style="width: 60px; padding: 6px; margin: 0;">Delete</button>
+          </div>`
+        ).join('') || '<p style="color: #999;">No occasions</p>'
+
+        // Chat
+        document.getElementById('chatMessages').innerHTML = data.chat.map(m =>
+          `<div class="chat-msg ${m.sender === chatAs ? 'sent' : 'received'}">
+            <strong>${m.sender}:</strong> ${m.text}
+          </div>`
+        ).join('')
+        document.getElementById('chatMessages').scrollTop = document.getElementById('chatMessages').scrollHeight
+      } catch (err) {
+        console.error('Load error:', err)
+      }
+    }
+
+    // Real-time sync
+    supabase.channel('all').on('postgres_changes', { event: '*', schema: 'public' }, () => loadData()).subscribe()
+
+    loadData()
+  </script>
+</body>
+</html>
